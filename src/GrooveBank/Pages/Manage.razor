@@ -1,0 +1,144 @@
+@page "/manage"
+@using Core.Features.Samples
+@using Core.Features.Storage
+@inject ISampleService SampleService;
+@inject IStorageService StorageService;
+
+<h3>Manage</h3>
+
+<div class="row">
+    <div class="col-4">
+        <div class="card">
+            <div class="card-body">
+                <div class="card-title">Reindex samples</div>
+                @if (!_reindexing)
+                {
+                    <p class="card-text">
+                        Indexed:
+                        @if (_indexedCount == null)
+                        {
+                            <strong>Calculating...</strong>
+                        }
+                        else
+                        {
+                            @_indexedCount
+                        }
+                        <br/>
+                        In storage:
+                        @if (_inStorageCount == null)
+                        {
+                            <strong>Calculating...</strong>
+                        }
+                        else
+                        {
+                            @_inStorageCount
+                        }
+                    </p>
+                    <btn class="btn btn-warning"
+                         @onclick:preventDefault
+                         @onclick="@TriggerReindex">
+                        Reindex
+                    </btn>
+                }
+                else
+                {
+                    <p class="card-text">
+                        Indexing, do not leave this page...<br/>
+                        @_status <br/>
+                        @_indexedCount of @_inStorageCount
+                        @if (_inStorageCount > 0)
+                        {
+                            @(", " + ((float)_indexedCount / (float)_inStorageCount).ToString("P"))
+                        }
+                        <br/>
+                        @_currentFilename
+                    </p>
+                }
+            </div>
+        </div>
+    </div>
+</div>
+
+@code {
+    int? _indexedCount;
+    int? _inStorageCount;
+    string _status = string.Empty;
+    bool _reindexing;
+    string _currentFilename = string.Empty;
+    
+    protected override async void OnInitialized()
+    {
+        await RefreshData();
+    }
+
+    private async Task RefreshData()
+    {
+        _indexedCount = await SampleService.GetSampleCount();
+        _inStorageCount = StorageService.GetSampleCount();
+
+        StateHasChanged();
+    }
+    
+    private async Task TriggerReindex()
+    {
+        _status = "Preparing...";
+        _reindexing = true;
+        _indexedCount = 0;
+        _inStorageCount = null;
+        StateHasChanged();
+        
+        await SampleService.MarkAllExistingAsProcessing();
+    
+        _status = "Getting all files in storage...";
+        StateHasChanged();
+        var paths = StorageService.GetAllFilesInStorage();
+        
+        _inStorageCount = paths.Count();
+        _status = "Processing samples...";
+        StateHasChanged();
+
+        foreach (var path in paths)
+        {
+            _currentFilename = Path.GetFileName(path);
+            StateHasChanged();
+            
+            var bytes = await File.ReadAllBytesAsync(path);
+            var md5 = StorageService.CalculateMD5(bytes);
+
+            var existingSample = await SampleService.GetSampleFromMD5(md5);
+
+            if (existingSample != null)
+            {
+                existingSample.Processing = false;
+                existingSample.Path = path;
+                existingSample.Filename = _currentFilename;
+                
+                await SampleService.UpdateSample(existingSample);
+            }
+            else
+            {
+                var newSample = new Sample
+                {
+                    Hash = md5,
+                    FileSize = bytes.Length,
+                    SampleLength = StorageService.GetSampleLength(bytes),   // TODO
+                    Path = path,
+                    Filename = _currentFilename,
+                    Processing = false
+                };
+                
+                await SampleService.AddSample(newSample);
+            }
+
+            _indexedCount++;
+            StateHasChanged();
+        }
+
+        _status = "Clearing deleted samples...";
+        StateHasChanged();
+        await SampleService.DeleteAllProcessing();
+
+        _reindexing = false;
+        StateHasChanged();
+    }
+}

@@ -5,6 +5,8 @@ VisualStudioVersion = 25.0.1705.6
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "GrooveBank", "GrooveBank\GrooveBank.csproj", "{D45E4291-6DD8-40F7-AFC8-E8FCA928DFCA}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Core", "Core\Core.csproj", "{3D120797-254E-41B7-A7A0-DDC93E9F31F6}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -15,6 +17,10 @@ Global
 		{D45E4291-6DD8-40F7-AFC8-E8FCA928DFCA}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{D45E4291-6DD8-40F7-AFC8-E8FCA928DFCA}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{D45E4291-6DD8-40F7-AFC8-E8FCA928DFCA}.Release|Any CPU.Build.0 = Release|Any CPU
+		{3D120797-254E-41B7-A7A0-DDC93E9F31F6}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{3D120797-254E-41B7-A7A0-DDC93E9F31F6}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{3D120797-254E-41B7-A7A0-DDC93E9F31F6}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{3D120797-254E-41B7-A7A0-DDC93E9F31F6}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
